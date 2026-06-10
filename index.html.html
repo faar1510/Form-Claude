@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cadastro</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:          #0f1117;
+    --surface:     #181c27;
+    --border:      #272d3d;
+    --accent:      #3d7fff;
+    --accent-glow: rgba(61,127,255,.25);
+    --success:     #22c55e;
+    --error:       #f43f5e;
+    --text:        #e8eaf0;
+    --muted:       #7a82a0;
+    --radius:      14px;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    padding: 40px 36px 36px;
+    box-shadow: 0 0 60px rgba(0,0,0,.5);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .logo {
+    width: 44px; height: 44px;
+    background: var(--accent);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+  }
+  .logo svg { width: 22px; height: 22px; fill: #fff; }
+
+  h1 {
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -.5px;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    font-size: .85rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  .geo-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(61,127,255,.08);
+    border: 1px solid rgba(61,127,255,.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .78rem;
+    color: var(--muted);
+    margin-bottom: 26px;
+    min-height: 42px;
+  }
+  .geo-badge .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+    transition: background .3s;
+  }
+  .geo-badge.ok .dot   { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .geo-badge.fail .dot { background: var(--error);   box-shadow: 0 0 6px var(--error); }
+  .geo-badge.ok   { border-color: rgba(34,197,94,.25); background: rgba(34,197,94,.06); color: var(--text); }
+  .geo-badge.fail { border-color: rgba(244,63,94,.25); background: rgba(244,63,94,.06); }
+
+  .field { margin-bottom: 18px; }
+
+  label {
+    display: block;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 7px;
+  }
+
+  input, textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 13px 16px;
+    font-size: .95rem;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: .6; }
+
+  input:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  textarea { resize: vertical; min-height: 90px; }
+
+  .field-hint {
+    font-size: .74rem;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  button[type="submit"] {
+    width: 100%;
+    margin-top: 8px;
+    padding: 15px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    letter-spacing: .02em;
+    transition: opacity .2s, transform .1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  button[type="submit"]:hover   { opacity: .88; }
+  button[type="submit"]:active  { transform: scale(.98); }
+  button[type="submit"]:disabled { opacity: .45; cursor: not-allowed; }
+
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed;
+    bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1e2333;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 22px;
+    font-size: .88rem;
+    color: var(--text);
+    box-shadow: 0 8px 30px rgba(0,0,0,.4);
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    z-index: 999;
+    max-width: 90vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(34,197,94,.35); }
+  .toast.error   { border-color: rgba(244,63,94,.35); }
+
+  @media (max-width: 480px) {
+    .card { padding: 28px 20px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+  </div>
+
+  <h1>Formulário de Cadastro</h1>
+  <p class="subtitle">Preencha seus dados abaixo. Sua localização é coletada automaticamente para fins de registro.</p>
+
+  <div class="geo-badge" id="geoBadge">
+    <span class="dot"></span>
+    <span id="geoText">Aguardando permissão de localização…</span>
+  </div>
+
+  <form id="mainForm" onsubmit="submitForm(event)">
+    <div class="field">
+      <label>Nome completo</label>
+      <input type="text" id="nome" placeholder="Ex: João da Silva" required />
+    </div>
+
+    <div class="field">
+      <label>Telefone / WhatsApp</label>
+      <input type="tel" id="telefone" placeholder="(31) 99999-9999" required />
+    </div>
+
+    <div class="field">
+      <label>Endereço</label>
+      <textarea id="endereco" placeholder="Rua, número, bairro, cidade…" required></textarea>
+      <p class="field-hint">Rua • Número • Bairro • Cidade • CEP</p>
+    </div>
+
+    <button type="submit" id="submitBtn">
+      <span id="btnText">Enviar cadastro</span>
+      <span class="spinner" id="spinner"></span>
+    </button>
+  </form>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toastIcon"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+  // ════════════════════════════════════════════
+  //  ▼▼▼  COLE AQUI A URL DO SEU APPS SCRIPT  ▼▼▼
+  const ENDPOINT = 'COLE_AQUI_A_URL_DO_APPS_SCRIPT';
+  //  ▲▲▲  Exemplo:
+  //  'https://script.google.com/macros/s/AKfy.../exec'
+  // ════════════════════════════════════════════
+
+  let geoData = { latitude: 'N/D', longitude: 'N/D', cidade: 'N/D' };
+
+  // ── GEOLOCALIZAÇÃO ──────────────────────────
+  function initGeo() {
+    const badge   = document.getElementById('geoBadge');
+    const geoText = document.getElementById('geoText');
+
+    if (!navigator.geolocation) {
+      badge.classList.add('fail');
+      geoText.textContent = 'Geolocalização não suportada neste navegador.';
+      return;
+    }
+
+    geoText.textContent = 'Obtendo localização…';
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        geoData.latitude  = pos.coords.latitude.toFixed(6);
+        geoData.longitude = pos.coords.longitude.toFixed(6);
+
+        badge.classList.add('ok');
+        geoText.textContent = `📍 ${geoData.latitude}, ${geoData.longitude} — buscando cidade…`;
+
+        try {
+          const r = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${geoData.latitude}&lon=${geoData.longitude}&format=json`,
+            { headers: { 'Accept-Language': 'pt-BR' } }
+          );
+          const j = await r.json();
+          const a = j.address || {};
+          geoData.cidade = a.city || a.town || a.village || a.county || 'N/D';
+          geoText.textContent = `📍 ${geoData.cidade} (${geoData.latitude}, ${geoData.longitude})`;
+        } catch {
+          geoText.textContent = `📍 ${geoData.latitude}, ${geoData.longitude}`;
+        }
+      },
+      (err) => {
+        badge.classList.add('fail');
+        const msgs = {
+          1: 'Permissão de localização negada.',
+          2: 'Localização indisponível no momento.',
+          3: 'Tempo esgotado ao obter localização.'
+        };
+        geoText.textContent = msgs[err.code] || 'Erro ao obter localização.';
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
+  // ── MÁSCARA DE TELEFONE ─────────────────────
+  document.getElementById('telefone').addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 10)      v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+    else if (v.length > 6)  v = `(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`;
+    else if (v.length > 2)  v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+    else if (v.length > 0)  v = `(${v}`;
+    this.value = v;
+  });
+
+  // ── ENVIO ────────────────────────────────────
+  async function submitForm(e) {
+    e.preventDefault();
+
+    if (!ENDPOINT || ENDPOINT === 'COLE_AQUI_A_URL_DO_APPS_SCRIPT') {
+      showToast('⚠️ Configure o ENDPOINT no código HTML antes de usar.', 'error');
+      return;
+    }
+
+    setLoading(true);
+
+    const payload = {
+      nome:      document.getElementById('nome').value.trim(),
+      telefone:  document.getElementById('telefone').value.trim(),
+      endereco:  document.getElementById('endereco').value.trim(),
+      latitude:  geoData.latitude,
+      longitude: geoData.longitude,
+      cidade:    geoData.cidade
+    };
+
+    try {
+      await fetch(ENDPOINT, {
+        method:  'POST',
+        mode:    'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+
+      showToast('✅ Cadastro enviado com sucesso!', 'success');
+      document.getElementById('mainForm').reset();
+    } catch (err) {
+      showToast('❌ Falha no envio. Verifique sua conexão.', 'error');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── HELPERS ──────────────────────────────────
+  function setLoading(on) {
+    document.getElementById('submitBtn').disabled = on;
+    document.getElementById('btnText').style.display  = on ? 'none' : 'inline';
+    document.getElementById('spinner').style.display  = on ? 'block' : 'none';
+  }
+
+  let toastTimer;
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '⚠️';
+    t.className = `toast ${type}`;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 4500);
+  }
+
+  // ── INIT ─────────────────────────────────────
+  initGeo();
+</script>
+</body>
+</html>
